@@ -8,6 +8,7 @@ import com.studo.campusqr.database.initialDatabaseSetup
 import com.studo.campusqr.database.startAutomaticCheckOut
 import com.studo.campusqr.database.startAutomaticDataDeletion
 import com.studo.campusqr.endpoints.*
+import com.studo.campusqr.utils.AuthenticatedApplicationCall
 import com.studo.campusqr.utils.Session
 import com.studo.campusqr.utils.getAuthenticatedCall
 import com.studo.campusqr.utils.setLogLevel
@@ -153,6 +154,12 @@ suspend fun main() {
         get("campusqr-admin.js") { call.returnModeratorJs() }
         get("/{...}") { call.returnModeratorIndexHtml() }
       }
+
+      route("checkIns") {
+        get { call.getAuthenticatedCall()?.listAllCheckINs() }
+      }
+
+
       static("/static") {
         resources()
       }

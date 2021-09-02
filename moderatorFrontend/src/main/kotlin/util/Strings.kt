@@ -719,6 +719,11 @@ object Strings {
     "Live - derzeit eingecheckt",
   )
 
+  val check_Ins = LocalizedString(
+      "All check ins",
+      "Alle Check ins",
+  )
+
 }
 
 val UserPermission.localizedString: LocalizedString

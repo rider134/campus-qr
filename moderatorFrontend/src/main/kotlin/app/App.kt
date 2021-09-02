@@ -61,6 +61,11 @@ class App : RComponent<AppProps, AppState>() {
             label = Url.GUEST_CHECK_IN.title,
             icon = contactMailIcon,
             url = Url.GUEST_CHECK_IN
+          ),
+          SideDrawerItem(
+            label = Url.CHECK_INS.title,
+            icon = contactMailIcon,
+            url = Url.CHECK_INS
           )
         )
       } else {
