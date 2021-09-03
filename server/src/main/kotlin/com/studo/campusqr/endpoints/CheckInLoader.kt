@@ -12,10 +12,10 @@ import io.ktor.features.*
 import java.util.*
 
 
-suspend fun getALLCheckINs(language: String): List<ActiveCheckIn> {
+suspend fun getALLCheckINs(language: String): List<CheckIns> {
   return runOnDb { getCollection<CheckIn>().find().toList() }.map { it.toClientClass(language) }
 }
-suspend fun getCheckINsByLocation(language: String, locationId: String): List<ActiveCheckIn> {
+suspend fun getCheckINsByLocation(language: String, locationId: String): List<CheckIns> {
   return runOnDb { getCollection<CheckIn>().find(CheckIn::locationId equal locationId).toList() }.map { it.toClientClass(language) }
 }
 
@@ -27,7 +27,11 @@ suspend fun AuthenticatedApplicationCall.listAllCheckINs() {
 
   val locationId = parameters["locationId"]
 
-  respondObject(getCheckINsByLocation(language,locationId.toString()))
+  if(locationId.isNullOrEmpty()) {
+    respondObject(getALLCheckINs(language))
+  }
+  else{
+    respondObject(getCheckINsByLocation(language,locationId.toString()))
+  }
 
-  //respondObject(getALLCheckINs(language))
 }

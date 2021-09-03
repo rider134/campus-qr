@@ -96,7 +96,7 @@ class BackendSeatFilter : MongoMainEntry(), ClientPayloadable<ClientSeatFilter> 
   )
 }
 
-class CheckIn : MongoMainEntry(), ClientPayloadable<ActiveCheckIn> {
+class CheckIn : MongoMainEntry(), ClientPayloadable<CheckIns> {
   lateinit var locationId: String
   lateinit var date: Date
   var checkOutDate: Date? = null
@@ -108,13 +108,11 @@ class CheckIn : MongoMainEntry(), ClientPayloadable<ActiveCheckIn> {
   var seat: Int? = null // null if Location has no seatCount defined
   var checkedInBy: String? = null // userId of the person who created this check in for a guest
 
-  override fun toClientClass(language: String) = ActiveCheckIn(
+  override fun toClientClass(language: String) = CheckIns(
     id = _id,
     locationId = locationId,
-    seat = seat,
-    checkInDate = date.time.toDouble(),
+    checkInDate = date.toAustrianTime("dd.MM.yyyy HH:mm:ss"),
     email = email,
-    locationName = ""
   )
 }
 

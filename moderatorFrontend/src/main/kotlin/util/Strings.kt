@@ -415,6 +415,11 @@ object Strings {
     "Datum des ersten Logins"
   )
 
+  val checkInDate = LocalizedString(
+    "Check in date",
+    "Datum des Check-Ins Logins"
+  )
+
   val user_add = LocalizedString(
     "Create user",
     "User erstellen"
@@ -620,6 +625,11 @@ object Strings {
     "Gast Check-In",
   )
 
+  val checkin = LocalizedString(
+    "Recorded check ins",
+    "Gespeicherte Check-Ins",
+  )
+
   val guest_checkin_add_guest = LocalizedString(
     "Check in guest",
     "Gast einchecken",
@@ -628,6 +638,11 @@ object Strings {
   val guest_checkin_not_yet_added_title = LocalizedString(
     "Currently no guests are checked in.",
     "Momentan sind keine Gäste eingecheckt.",
+  )
+
+  val checkin_not_yet_added_title = LocalizedString(
+    "Currently no Check Ins for this Location.",
+    "Momentan sind keine Personen für diesen Ort eingecheckt.",
   )
 
   val guest_checkin_not_yet_added_subtitle = LocalizedString(

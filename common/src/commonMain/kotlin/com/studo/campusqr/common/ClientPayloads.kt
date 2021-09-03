@@ -170,6 +170,14 @@ class ActiveCheckIn(
   val seat: Int?,
   val checkInDate: Double,
   val email: String,
+): ClientPayload
+
+@Serializable
+class CheckIns(
+  val id: String,
+  val locationId: String,
+  val checkInDate: String,
+  val email: String
 ) : ClientPayload
 
 @Serializable

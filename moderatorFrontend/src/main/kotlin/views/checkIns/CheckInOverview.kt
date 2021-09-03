@@ -1,8 +1,7 @@
 package views.checkIns
 
 import app.GlobalCss
-import app.routeContext
-import com.studo.campusqr.common.ActiveCheckIn
+import com.studo.campusqr.common.CheckIns
 import com.studo.campusqr.common.ClientLocation
 import react.*
 import react.dom.div
@@ -15,15 +14,15 @@ import webcore.NetworkManager
 import webcore.extensions.launch
 import webcore.materialUI.*
 import webcore.mbSnackbar
+import kotlinext.js.js
 
 interface CheckInOverviewProps : RProps {
   var classes: CheckInOverviewClasses
 }
 
 interface CheckInOverviewState : RState {
-  var activeGuestCheckIns: List<ActiveCheckIn>?
+  var activeCheckIns: List<CheckIns>?
   var showAddGuestCheckInDialog: Boolean
-  var loadingCheckInList: Boolean
   var snackbarText: String
 
   var locationFetchInProgress: Boolean
@@ -37,9 +36,8 @@ interface CheckInOverviewState : RState {
 class CheckInOverview : RComponent<CheckInOverviewProps, CheckInOverviewState>() {
 
   override fun CheckInOverviewState.init() {
-    activeGuestCheckIns = emptyList()
+    activeCheckIns = emptyList()
     showAddGuestCheckInDialog = false
-    loadingCheckInList = false
     snackbarText = ""
 
     locationFetchInProgress = false
@@ -64,34 +62,45 @@ class CheckInOverview : RComponent<CheckInOverviewProps, CheckInOverviewState>()
   }
 
   private fun fetchActiveCheckIns() = launch {
-    setState { loadingCheckInList }
-    val response = NetworkManager.get<Array<ActiveCheckIn>>("$apiBase/checkIns",)
+    setState { locationFetchInProgress = true }
+    val response = NetworkManager.get<Array<CheckIns>>("$apiBase/checkIns",)
     setState {
       if (response != null) {
-        activeGuestCheckIns = response.toList()
+        activeCheckIns = response.toList()
       } else {
         snackbarText = Strings.error_try_again.get()
       }
-      loadingCheckInList = false
+      locationFetchInProgress = false
     }
   }
 
   private fun fetchActiveCheckInsByLocation(locationid: String) = launch {
-    setState { loadingCheckInList }
-    val response = NetworkManager.get<Array<ActiveCheckIn>>("$apiBase/checkIns", mapOf("locationid" to locationid))
+    setState {  locationFetchInProgress = true }
+    val response = NetworkManager.get<Array<CheckIns>>("$apiBase/checkIns", mapOf("locationid" to locationid))
     setState {
       if (response != null) {
-        activeGuestCheckIns = response.toList()
+        activeCheckIns = response.toList()
       } else {
         snackbarText = Strings.error_try_again.get()
       }
-      loadingCheckInList = false
+      locationFetchInProgress = false
     }
   }
 
   override fun componentDidMount() {
     fetchLocations()
     fetchActiveCheckIns()
+  }
+
+  override fun componentDidUpdate(prevProps: CheckInOverviewProps, prevState: CheckInOverviewState, snapshot: Any) {
+    if(prevState.selectedLocation != state.selectedLocation)
+    {
+        state.selectedLocation?.id?.let {
+          fetchActiveCheckInsByLocation(it)
+        } ?: run{
+          fetchActiveCheckIns()
+        }
+    }
   }
 
 
@@ -106,31 +115,20 @@ class CheckInOverview : RComponent<CheckInOverviewProps, CheckInOverviewState>()
 
   override fun RBuilder.render() {
     renderSnackbar()
-    renderToolbarView(ToolbarViewProps.Config(
-      title = Strings.guest_checkin.get(),
-      buttons = listOf(
-        ToolbarViewProps.ToolbarButton(
-          text = Strings.guest_checkin_add_guest.get(),
-          variant = "contained",
-          onClick = {
-            setState {
-              showAddGuestCheckInDialog = true
-            }
-          }
-        )
-      )
-    ))
+
+    typography {
+      attrs.className = props.classes.header
+      attrs.variant = "h5"
+      +Strings.checkin.get()
+    }
 
     muiAutocomplete {
+      attrs.className = props.classes.select
       attrs.value = state.selectedLocation?.name ?: ""
       attrs.onChange = { _, target: String?, _ ->
         setState {
           selectedLocationTextFieldError = ""
           selectedLocation = target?.let { locationNameToLocationMap[it] }
-          //selectedLocation.id
-          // User should re-select seat if needed
-          //seatInputValue = null
-          fetchActiveCheckInsByLocation(selectedLocation?.id!!)
         }
       }
       attrs.openOnFocus = true
@@ -152,41 +150,53 @@ class CheckInOverview : RComponent<CheckInOverviewProps, CheckInOverviewState>()
       }
     }
 
-    renderLinearProgress(state.loadingCheckInList)
 
-      when {
-        state.activeGuestCheckIns?.isNotEmpty() == true -> mTable {
-          mTableHead {
-            mTableRow {
-              mTableCell { +Strings.email_address.get() }
-              mTableCell { +Strings.user_first_login_date.get() }
-              mTableCell { }
-            }
-          }
-          mTableBody {
-            state.activeGuestCheckIns!!.forEach { activeCheckIn ->
-              renderCheckInRow(
-                CheckInRowProps.Config(activeCheckIn)
-              )
-            }
+    renderLinearProgress(state.locationFetchInProgress)
+
+    when {
+      state.activeCheckIns?.isNotEmpty() == true -> mTable {
+        mTableHead {
+          mTableRow {
+            mTableCell { +Strings.email_address.get() }
+            mTableCell { +Strings.checkInDate.get() }
+            mTableCell { }
           }
         }
-        state.activeGuestCheckIns == null && !state.loadingCheckInList -> networkErrorView()
-        !state.loadingCheckInList -> genericErrorView(
-          Strings.guest_checkin_not_yet_added_title.get(),
-          Strings.guest_checkin_not_yet_added_subtitle.get()
-        )
+        mTableBody {
+          state.activeCheckIns!!.forEach { checkIns ->
+            renderCheckInRow(
+              CheckInRowProps.Config(checkIns)
+            )
+          }
+        }
       }
+      state.activeCheckIns == null && !state.locationFetchInProgress -> networkErrorView()
+      !state.locationFetchInProgress -> genericErrorView(
+        Strings.checkin_not_yet_added_title.get(),
+        ""
+      )
     }
   }
+}
 
-  interface CheckInOverviewClasses
+interface CheckInOverviewClasses{
+  var header: String
+  var select: String
+}
 
-  private val style = { _: dynamic ->
+private val style = { _: dynamic ->
+  js {
+    header = js {
+      margin = 16
+    }
+    select = js {
+      margin = 8
+    }
   }
+}
 
-  private val styled = withStyles<CheckInOverviewProps, CheckInOverview>(style)
+private val styled = withStyles<CheckInOverviewProps, CheckInOverview>(style)
 
-  fun RBuilder.renderCheckInOverview() = styled {
-    // Set component attrs here
-  }
+fun RBuilder.renderCheckInOverview() = styled {
+  // Set component attrs here
+}
