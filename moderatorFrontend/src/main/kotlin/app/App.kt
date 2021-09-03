@@ -64,7 +64,7 @@ class App : RComponent<AppProps, AppState>() {
           ),
           SideDrawerItem(
             label = Url.CHECK_INS.title,
-            icon = contactMailIcon,
+            icon = bookMarkIcon,
             url = Url.CHECK_INS
           )
         )

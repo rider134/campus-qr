@@ -1,10 +1,8 @@
 package views.checkIns
 
-import app.GlobalCss
 import com.studo.campusqr.common.CheckIns
 import com.studo.campusqr.common.ClientLocation
 import react.*
-import react.dom.div
 import util.Strings
 import util.apiBase
 import util.get
@@ -25,8 +23,7 @@ interface CheckInOverviewState : RState {
   var showAddGuestCheckInDialog: Boolean
   var snackbarText: String
 
-  var locationFetchInProgress: Boolean
-  var showProgress: Boolean
+  var fetchInProgress: Boolean
   var locationNameToLocationMap: Map<String, ClientLocation>
 
   var selectedLocation: ClientLocation?
@@ -40,8 +37,7 @@ class CheckInOverview : RComponent<CheckInOverviewProps, CheckInOverviewState>()
     showAddGuestCheckInDialog = false
     snackbarText = ""
 
-    locationFetchInProgress = false
-    showProgress = false
+    fetchInProgress = false
     locationNameToLocationMap = emptyMap()
 
     selectedLocation = null
@@ -50,19 +46,19 @@ class CheckInOverview : RComponent<CheckInOverviewProps, CheckInOverviewState>()
 
   private fun fetchLocations() = launch {
     setState {
-      locationFetchInProgress = true
+      fetchInProgress = true
     }
     val response = NetworkManager.get<Array<ClientLocation>>("$apiBase/location/list")
     setState {
       if (response != null) {
         locationNameToLocationMap = response.associateBy { it.name }
       }
-      locationFetchInProgress = false
+      fetchInProgress = false
     }
   }
 
   private fun fetchActiveCheckIns() = launch {
-    setState { locationFetchInProgress = true }
+    setState { fetchInProgress = true }
     val response = NetworkManager.get<Array<CheckIns>>("$apiBase/checkIns",)
     setState {
       if (response != null) {
@@ -70,12 +66,12 @@ class CheckInOverview : RComponent<CheckInOverviewProps, CheckInOverviewState>()
       } else {
         snackbarText = Strings.error_try_again.get()
       }
-      locationFetchInProgress = false
+      fetchInProgress = false
     }
   }
 
   private fun fetchActiveCheckInsByLocation(locationid: String) = launch {
-    setState {  locationFetchInProgress = true }
+    setState {  fetchInProgress = true }
     val response = NetworkManager.get<Array<CheckIns>>("$apiBase/checkIns", mapOf("locationid" to locationid))
     setState {
       if (response != null) {
@@ -83,7 +79,7 @@ class CheckInOverview : RComponent<CheckInOverviewProps, CheckInOverviewState>()
       } else {
         snackbarText = Strings.error_try_again.get()
       }
-      locationFetchInProgress = false
+      fetchInProgress = false
     }
   }
 
@@ -151,7 +147,7 @@ class CheckInOverview : RComponent<CheckInOverviewProps, CheckInOverviewState>()
     }
 
 
-    renderLinearProgress(state.locationFetchInProgress)
+    renderLinearProgress(state.fetchInProgress)
 
     when {
       state.activeCheckIns?.isNotEmpty() == true -> mTable {
@@ -170,8 +166,8 @@ class CheckInOverview : RComponent<CheckInOverviewProps, CheckInOverviewState>()
           }
         }
       }
-      state.activeCheckIns == null && !state.locationFetchInProgress -> networkErrorView()
-      !state.locationFetchInProgress -> genericErrorView(
+      state.activeCheckIns == null && !state.fetchInProgress -> networkErrorView()
+      !state.fetchInProgress -> genericErrorView(
         Strings.checkin_not_yet_added_title.get(),
         ""
       )

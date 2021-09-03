@@ -541,6 +541,10 @@ val syncIcon: RClass<IconProps> = importedSyncIcon.default
 private external val importedSortIcon: dynamic
 val sortIcon: RClass<IconProps> = importedSortIcon.default
 
+@JsModule("@material-ui/icons/CollectionsBookmark")
+private external val importedBookMarkIcon: dynamic
+val bookMarkIcon: RClass<IconProps> = importedBookMarkIcon.default
+
 @JsModule("@material-ui/icons/PhoneAndroid")
 private external val importedPhoneAndroidIcon: dynamic
 val phoneAndroidIcon: RClass<IconProps> = importedPhoneAndroidIcon.default
